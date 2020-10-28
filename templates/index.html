@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>论文阅读记录</title>
+    <link href="/static/bootstrap-3.3.7/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+    <link href="/static/style/style.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<div id="app" class="background">
+    <div class="container">
+        <div class="row">
+            <div class="sidebar">
+                <img class="decorate decorate-sakura" src="/static/images/left_sakura1.png" alt="decorate"/>
+                <img class="sidebar-logo" src="/static/images/logo.png" alt="logo"/>
+                <div class="h4 sidebar-title">论文阅读记录器</div>
+                <ul class="sidebar-menu">
+                    <li class="sidebar-menu-item" :class="{ active: panelType==1 }">
+                        <i class="glyphicon glyphicon-tags"></i>
+                        <span class="ml-5">标签管理</span>
+                    </li>
+                    <li class="sidebar-menu-item" :class="{ active: panelType==2 }">
+                        <i class="glyphicon glyphicon-bookmark"></i>
+                        <span class="ml-5">阅读记录</span>
+                    </li>
+                    <li class="sidebar-menu-item" :class="{ active: panelType==3 }">
+                        <i class="glyphicon glyphicon-asterisk"></i>
+                        <span class="ml-5">环境设置</span>
+                    </li>
+                </ul>
+                <i class="glyphicon glyphicon-tower sidebar-bottom-logo"></i>
+            </div>
+            <div class="main">
+                <div v-if="panelType == 1">
+                    <div class="main-header">
+                        <div class="header-box">
+                            <div class="header-title">
+                                <i class="glyphicon glyphicon-tag"></i>
+                                <span class="title ml-10">标签管理</span>
+                            </div>
+                            <div class="header-operator">
+                                <i class="glyphicon glyphicon-plus" data-toggle="tooltip" data-placement="bottom"
+                                   title="创建新的标签"></i>
+                                <i class="glyphicon glyphicon-refresh ml-10" style="font-size: 22px;"
+                                   data-toggle="tooltip"
+                                   data-placement="bottom" title="刷新提交结果"></i>
+                            </div>
+                        </div>
+                        <div class="delimiter"></div>
+                    </div>
+                    <div class="main-body">
+
+                        <form class="form form-inline">
+                            <div class="form-group">
+                                <label class="control-label" for="labelName">标签名称：</label>
+                                <input type="text" class="form-control" placeholder="无" id="labelName"/>
+                            </div>
+                            <div class="form-group ml-10">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-default dropdown-toggle"
+                                            data-toggle="dropdown">
+                                        <span v-text="query.dateType"></span><span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" @click="query.dateType='日期类型'">日期类型</a></li>
+                                        <li role="separator" class="divider"></li>
+                                        <li><a href="#" @click="query.dateType='创建日期'">创建日期</a></li>
+                                        <li><a href="#" @click="query.dateType='修改日期'">修改日期</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-group ml-10">
+                                <label class="control-label" for="startDate">起始日期：</label>
+                                <input type="date" class="form-control" id="startDate"/>
+                                <label class="control-label ml-10" for="endDate">结束日期：</label>
+                                <input type="date" class="form-control" id="endDate"/>
+                            </div>
+                            <div class="form-group ml-10 pos-right">
+                                <div class="btn btn-default">提交</div>
+                            </div>
+                        </form>
+                        <table class="table table-bordered mt-20">
+                            <tr>
+                                <th class="hidden">标签号</th>
+                                <th>标签名称</th>
+                                <th>创建日期</th>
+                                <th>修改日期</th>
+                                <th>标签描述</th>
+                                <th>相关操作</th>
+                            </tr>
+                            <tr v-for="item in dataList.tagList">
+                                <td class="hidden" v-text="item.id"></td>
+                                <td v-text="item.name"></td>
+                                <td v-text="item.dateCreate"></td>
+                                <td v-text="item.dateModify"></td>
+                                <td v-text="item.brief"></td>
+                                <td class="table-operator">
+                                    <i class="glyphicon glyphicon-pencil" data-toggle="tooltip" data-placement="bottom"
+                                       title="修改标签"></i>
+                                    <i class="glyphicon glyphicon-trash ml-5" data-toggle="tooltip"
+                                       data-placement="bottom" title="删除标签"></i>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="main-pager">
+                            <div class="page-form pos-right">
+                                <form class="form form-inline">
+                                    <div class="form-group">
+                                        <label class="control-label" for="page">当前页码/总页数：1/10</label>
+                                        <input type="text" class="form-control ml-10" value="1" id="page"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="btn btn-default">跳页</div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div v-else-if="panelType == 2">
+                    <div class="main-header">
+                        <div class="header-box">
+                            <div class="header-title">
+                                <i class="glyphicon glyphicon-bookmark"></i>
+                                <span class="title ml-10">阅读记录</span>
+                            </div>
+                            <div class="header-operator">
+                                <i class="glyphicon glyphicon-plus" data-toggle="tooltip" data-placement="bottom"
+                                   title="创建新的阅读记录"></i>
+                                <i class="glyphicon glyphicon-refresh ml-10" style="font-size: 22px;"
+                                   data-toggle="tooltip"
+                                   data-placement="bottom" title="刷新提交结果"></i>
+                            </div>
+                        </div>
+                        <div class="delimiter"></div>
+                    </div>
+                    <div class="main-body">
+                        <form class="form form-inline">
+                            <div class="form-group">
+                                <label class="control-label" for="paperName">论文名称：</label>
+                                <input type="text" class="form-control" placeholder="无" id="paperName"/>
+                            </div>
+                            <div class="form-group ml-10">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-default dropdown-toggle"
+                                            data-toggle="dropdown">
+                                        <span v-text="query.dateType"></span><span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="#" @click="query.dateType='日期类型'">日期类型</a></li>
+                                        <li role="separator" class="divider"></li>
+                                        <li><a href="#" @click="query.dateType='创建日期'">创建日期</a></li>
+                                        <li><a href="#" @click="query.dateType='修改日期'">修改日期</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-group ml-10">
+                                <label class="control-label" for="startDate">起始日期：</label>
+                                <input type="date" class="form-control" id="startDate"/>
+                                <label class="control-label ml-10" for="endDate">结束日期：</label>
+                                <input type="date" class="form-control" id="endDate"/>
+                            </div>
+                            <div class="form-group ml-10 pos-right">
+                                <div class="btn btn-default">提交</div>
+                            </div>
+                        </form>
+                        <table class="table table-bordered mt-20">
+                            <tr>
+                                <th class="hidden">论文记录号</th>
+                                <th class="wd-300">论文名称</th>
+                                <th class="wd-200">阅读进度</th>
+                                <th>创建日期</th>
+                                <th>修改日期</th>
+                                <th>相关操作</th>
+                            </tr>
+                            <tr v-for="item in dataList.paperList">
+                                <td class="hidden" v-text="item.id"></td>
+                                <td class="wd-300">
+                                    <div class="wd-300 ellipsis" v-text="item.name"></div>
+                                </td>
+                                <td class="wd-200">
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped active" role="progressbar"
+                                             :aria-valuenow="item.progress" aria-valuemin="0" aria-valuemax="100"
+                                             style="min-width: 2em;" :style="{ width: item.progress + '%' }">
+                                            <span v-text="item.progress + '%'"></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td v-text="item.dateCreate"></td>
+                                <td v-text="item.dateModify"></td>
+                                <td class="table-operator">
+                                    <i class="glyphicon glyphicon-file" data-toggle="tooltip"
+                                       data-placement="bottom"
+                                       title="查看阅读记录详情"></i>
+                                    <i class="glyphicon glyphicon-pencil ml-5" data-toggle="tooltip"
+                                       data-placement="bottom"
+                                       title="修改阅读记录"></i>
+                                    <i class="glyphicon glyphicon-trash ml-5" data-toggle="tooltip"
+                                       data-placement="bottom" title="删除阅读记录"></i>
+                                </td>
+                            </tr>
+                        </table>
+                        <div class="main-pager">
+                            <div class="page-form pos-right">
+                                <form class="form form-inline">
+                                    <div class="form-group">
+                                        <label class="control-label" for="page">当前页码/总页数：1/10</label>
+                                        <input type="text" class="form-control ml-10" value="1" id="page"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="btn btn-default">跳页</div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遮罩层 -->
+    <div class="mask-layer"></div>
+
+    <!-- 弹窗层 -->
+    <div class="popup-layer panel-default">
+        <div class="panel-heading">
+            <div class="panel-name">添加标签</div>
+            <div class="panel-operator">
+                <i class="glyphicon glyphicon-remove"></i>
+            </div>
+        </div>
+        <div class="panel-body">
+            测试一下
+        </div>
+    </div>
+</div>
+<script src="/static/script/jquery.min.js"></script>
+<script src="/static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+<script src="/static/script/vue.js"></script>
+<script>
+
+    new Vue({
+        el: "#app",
+        data: {
+            panelType: 1,
+            query: {
+                dateType: "日期类型"
+            },
+            dataList: {
+                tagList: [
+                    {
+                        id: 1,
+                        name: "深度学习",
+                        dateCreate: "2020-10-21 10:00:00",
+                        dateModify: "2020-10-22 10:00:00",
+                        brief: "记录深度学习相关的内容"
+                    },
+                    {
+                        id: 2,
+                        name: "机器学习",
+                        dateCreate: "2020-10-21 10:00:00",
+                        dateModify: "2020-10-22 10:00:00",
+                        brief: "记录机器学习相关的内容"
+                    },
+                    {
+                        id: 3,
+                        name: "自然语言处理",
+                        dateCreate: "2020-10-21 10:00:00",
+                        dateModify: "2020-10-22 10:00:00",
+                        brief: "记录自然语言处理相关的内容"
+                    },
+                    {
+                        id: 1,
+                        name: "深度学习",
+                        dateCreate: "2020-10-21 10:00:00",
+                        dateModify: "2020-10-22 10:00:00",
+                        brief: "记录深度学习相关的内容"
+                    },
+                    {
+                        id: 2,
+                        name: "机器学习",
+                        dateCreate: "2020-10-21 10:00:00",
+                        dateModify: "2020-10-22 10:00:00",
+                        brief: "记录机器学习相关的内容"
+                    },
+                    {
+                        id: 3,
+                        name: "自然语言处理",
+                        dateCreate: "2020-10-21 10:00:00",
+                        dateModify: "2020-10-22 10:00:00",
+                        brief: "记录自然语言处理相关的内容"
+                    },
+                    {
+                        id: 1,
+                        name: "深度学习",
+                        dateCreate: "2020-10-21 10:00:00",
+                        dateModify: "2020-10-22 10:00:00",
+                        brief: "记录深度学习相关的内容"
+                    },
+                    {
+                        id: 2,
+                        name: "机器学习",
+                        dateCreate: "2020-10-21 10:00:00",
+                        dateModify: "2020-10-22 10:00:00",
+                        brief: "记录机器学习相关的内容"
+                    },
+                    {
+                        id: 3,
+                        name: "自然语言处理",
+                        dateCreate: "2020-10-21 10:00:00",
+                        dateModify: "2020-10-22 10:00:00",
+                        brief: "记录自然语言处理相关的内容"
+                    },
+                ],
+                paperList: [
+                    {
+                        id: 1,
+                        name: "《Pre-trained Models for Natural Language Processing: A Survey》",
+                        progress: 60,
+                        dateCreate: "2020-10-20",
+                        dateModify: "2020-10-20",
+                        label: "预训练模型"
+                    },
+                    {
+                        id: 1,
+                        name: "《BERT》",
+                        progress: 60,
+                        dateCreate: "2020-10-20",
+                        dateModify: "2020-10-20",
+                        label: "预训练模型"
+                    },
+                    {
+                        id: 1,
+                        name: "《BERT》",
+                        progress: 60,
+                        dateCreate: "2020-10-20",
+                        dateModify: "2020-10-20",
+                        label: "预训练模型"
+                    },
+                    {
+                        id: 1,
+                        name: "《BERT》",
+                        progress: 60,
+                        dateCreate: "2020-10-20",
+                        dateModify: "2020-10-20",
+                        label: "预训练模型"
+                    },
+                    {
+                        id: 1,
+                        name: "《BERT》",
+                        progress: 60,
+                        dateCreate: "2020-10-20",
+                        dateModify: "2020-10-20",
+                        label: "预训练模型"
+                    }
+                ]
+            }
+        },
+        created() {
+            this.$nextTick(function () {
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip()
+                })
+            })
+        }
+    })
+</script>
+</body>
+</html>
