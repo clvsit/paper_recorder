@@ -49,34 +49,36 @@
                         <div class="delimiter"></div>
                     </div>
                     <div class="main-body">
-
                         <form class="form form-inline">
                             <div class="form-group">
                                 <label class="control-label" for="labelName">标签名称：</label>
-                                <input type="text" class="form-control" placeholder="无" id="labelName"/>
+                                <input type="text" v-model="query.label.name" class="form-control" placeholder="无" id="labelName"/>
                             </div>
                             <div class="form-group ml-10">
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-default dropdown-toggle"
                                             data-toggle="dropdown">
-                                        <span v-text="query.dateType"></span><span class="caret"></span>
+                                        <span v-if="query.label.dateType == 0">日期类型</span>
+                                        <span v-else-if="query.label.dateType == 1">创建日期</span>
+                                        <span v-else>修改日期</span>
+                                        <span class="caret"></span>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a href="#" @click="query.dateType='日期类型'">日期类型</a></li>
+                                        <li><a href="#" @click="query.label.dateType=0">日期类型</a></li>
                                         <li role="separator" class="divider"></li>
-                                        <li><a href="#" @click="query.dateType='创建日期'">创建日期</a></li>
-                                        <li><a href="#" @click="query.dateType='修改日期'">修改日期</a></li>
+                                        <li><a href="#" @click="query.label.dateType=1">创建日期</a></li>
+                                        <li><a href="#" @click="query.label.dateType=2">修改日期</a></li>
                                     </ul>
                                 </div>
                             </div>
-                            <div class="form-group ml-10">
+                            <div class="form-group ml-10" v-if="query.label.dateType != 0">
                                 <label class="control-label" for="startDate">起始日期：</label>
-                                <input type="date" class="form-control" id="startDate"/>
+                                <input type="date" v-model="query.label.dateStart" class="form-control" id="startDate"/>
                                 <label class="control-label ml-10" for="endDate">结束日期：</label>
-                                <input type="date" class="form-control" id="endDate"/>
+                                <input type="date" v-model="query.label.dateEnd" class="form-control" id="endDate"/>
                             </div>
                             <div class="form-group ml-10 pos-right">
-                                <div class="btn btn-default">提交</div>
+                                <div @click="request" class="btn btn-default">提交</div>
                             </div>
                         </form>
                         <table class="table table-bordered mt-20">
@@ -88,7 +90,7 @@
                                 <th>标签描述</th>
                                 <th>相关操作</th>
                             </tr>
-                            <tr v-for="item in dataList.tagList">
+                            <tr v-for="item in dataList.labelList">
                                 <td class="hidden" v-text="item.id"></td>
                                 <td v-text="item.name"></td>
                                 <td v-text="item.dateCreate"></td>
@@ -223,18 +225,40 @@
     </div>
 
     <!-- 遮罩层 -->
-    <div class="mask-layer"></div>
+    <div class="mask-layer hidden"></div>
 
     <!-- 弹窗层 -->
-    <div class="popup-layer panel-default">
-        <div class="panel-heading">
-            <div class="panel-name">添加标签</div>
-            <div class="panel-operator">
-                <i class="glyphicon glyphicon-remove"></i>
+    <div class="popup-layer panel-default hidden"
+         :style="{ width: panel.width + 'px', height: panel.height + 'px', 'margin-left': '-' + panel.marginLeft + 'px', 'margin-top': '-' + panel.marginTop + 'px' }">
+        <div v-if="panelType == 1">
+            <div class="panel-heading">
+                <div class="panel-name h4">添加标签</div>
+                <div class="panel-operator">
+                    <i class="glyphicon glyphicon-remove"></i>
+                </div>
             </div>
-        </div>
-        <div class="panel-body">
-            测试一下
+            <div class="panel-body">
+                <form class="form">
+                    <div class="form-group">
+                        <label class="control-label" for="createLabelName">
+                            *标签名称：1-10个中文汉字
+                        </label>
+                        <input type="text" class="form-control" id="createLabelName"/>
+                        <div class=""></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="createLabelBrief">标签介绍：1-64个中文汉字</label>
+                        <textarea class="form-control" id="createLabelBrief" rows="5"></textarea>
+                    </div>
+                </form>
+                <div class="delimiter"></div>
+                <div class="panel-operator">
+                    <div class="btn-new-style line-center">
+                        <div class="btn-new-style-circle"></div>
+                        创建
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -242,80 +266,20 @@
 <script src="/static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
 <script src="/static/script/vue.js"></script>
 <script>
-
     new Vue({
         el: "#app",
         data: {
             panelType: 1,
             query: {
-                dateType: "日期类型"
+                label: {
+                    name: "",
+                    dateType: 0,
+                    dateStart: "",
+                    dateEnd: ""
+                }
             },
             dataList: {
-                tagList: [
-                    {
-                        id: 1,
-                        name: "深度学习",
-                        dateCreate: "2020-10-21 10:00:00",
-                        dateModify: "2020-10-22 10:00:00",
-                        brief: "记录深度学习相关的内容"
-                    },
-                    {
-                        id: 2,
-                        name: "机器学习",
-                        dateCreate: "2020-10-21 10:00:00",
-                        dateModify: "2020-10-22 10:00:00",
-                        brief: "记录机器学习相关的内容"
-                    },
-                    {
-                        id: 3,
-                        name: "自然语言处理",
-                        dateCreate: "2020-10-21 10:00:00",
-                        dateModify: "2020-10-22 10:00:00",
-                        brief: "记录自然语言处理相关的内容"
-                    },
-                    {
-                        id: 1,
-                        name: "深度学习",
-                        dateCreate: "2020-10-21 10:00:00",
-                        dateModify: "2020-10-22 10:00:00",
-                        brief: "记录深度学习相关的内容"
-                    },
-                    {
-                        id: 2,
-                        name: "机器学习",
-                        dateCreate: "2020-10-21 10:00:00",
-                        dateModify: "2020-10-22 10:00:00",
-                        brief: "记录机器学习相关的内容"
-                    },
-                    {
-                        id: 3,
-                        name: "自然语言处理",
-                        dateCreate: "2020-10-21 10:00:00",
-                        dateModify: "2020-10-22 10:00:00",
-                        brief: "记录自然语言处理相关的内容"
-                    },
-                    {
-                        id: 1,
-                        name: "深度学习",
-                        dateCreate: "2020-10-21 10:00:00",
-                        dateModify: "2020-10-22 10:00:00",
-                        brief: "记录深度学习相关的内容"
-                    },
-                    {
-                        id: 2,
-                        name: "机器学习",
-                        dateCreate: "2020-10-21 10:00:00",
-                        dateModify: "2020-10-22 10:00:00",
-                        brief: "记录机器学习相关的内容"
-                    },
-                    {
-                        id: 3,
-                        name: "自然语言处理",
-                        dateCreate: "2020-10-21 10:00:00",
-                        dateModify: "2020-10-22 10:00:00",
-                        brief: "记录自然语言处理相关的内容"
-                    },
-                ],
+                labelList: [],
                 paperList: [
                     {
                         id: 1,
@@ -358,6 +322,12 @@
                         label: "预训练模型"
                     }
                 ]
+            },
+            panel: {
+                width: 600,
+                height: 400,
+                marginLeft: 0,
+                marginTop: 0
             }
         },
         created() {
@@ -365,7 +335,41 @@
                 $(function () {
                     $('[data-toggle="tooltip"]').tooltip()
                 })
-            })
+            });
+            this.calPanelStyle();
+            this.request();
+        },
+        methods: {
+            request () {
+                let _this = this;
+
+                $.ajax({
+                    method: "GET",
+                    url: "label/get",
+                    data: {
+                        name: this.query.label.name,
+                        page: 1,
+                        limit: 10,
+                        dateType: 1,
+                        dateStart: this.query.label.dateStart,
+                        dateEnd: this.query.label.dateEnd
+                    },
+                    success (resp) {
+                        resp = JSON.parse(resp);
+                        if (Number(resp.code) === 1) {
+                            console.log(resp.data.labelList);
+                            _this.dataList.labelList = resp.data.labelList;
+                        }
+                    }
+                })
+            },
+            calPanelStyle() {
+                const width = this.panel.width,
+                    height = this.panel.height;
+
+                this.panel.marginLeft = width / 2;
+                this.panel.marginTop = height / 2;
+            }
         }
     })
 </script>

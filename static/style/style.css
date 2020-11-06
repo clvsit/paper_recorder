@@ -1,6 +1,9 @@
 .background {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 768px;
+    height: 100%;
     background: url("/static/images/back.jpg") center center repeat;
 }
 
@@ -199,6 +202,15 @@
     font-weight: 900;
 }
 
+.popup-layer .panel-body .form .form-focus {
+    font-size: 10px;
+}
+
+.popup-layer .panel-body .panel-operator {
+    margin-top: 10px;
+    text-align: center;
+}
+
 .decorate {
     position: absolute;
     z-index: 1;
@@ -214,6 +226,26 @@
 .delimiter {
     border: 0;
     border-top: 1px solid #eee;
+}
+
+.btn-new-style {
+    padding: 5px 10px;
+    border-radius: 5px;
+    box-shadow: 0 3px 5px 1px rgba(0,0,0,0.5);
+    width: 100px;
+    cursor: pointer;
+    text-align: center;
+    transition: all .25s linear;
+}
+
+.btn-new-style:hover {
+    background-color: #000;
+    color: #fff;
+    box-shadow: 0 5px 5px 2px rgba(0,0,0,0.5);
+}
+
+.line-center {
+    margin: 0 auto;
 }
 
 .mt-5 {

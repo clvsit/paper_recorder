@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>论文阅读记录</title>
+    <link href="/static/bootstrap-3.3.7/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+    <link href="/static/style/style.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<div id="app" class="background">
+    <div class="container">
+        <div class="row">
+            <div class="sidebar">
+                <img class="decorate decorate-sakura" src="/static/images/left_sakura1.png" alt="decorate"/>
+                <img class="sidebar-logo" src="/static/images/logo.png" alt="logo"/>
+                <div class="h4 sidebar-title">论文阅读记录器</div>
+                <ul class="sidebar-menu">
+                    <li class="sidebar-menu-item active">
+                        <i class="glyphicon glyphicon-tags"></i>
+                        <span class="ml-5">标签管理</span>
+                    </li>
+                    <li class="sidebar-menu-item">
+                        <i class="glyphicon glyphicon-bookmark"></i>
+                        <span class="ml-5">阅读记录</span>
+                    </li>
+                    <li class="sidebar-menu-item">
+                        <i class="glyphicon glyphicon-asterisk"></i>
+                        <span class="ml-5">环境设置</span>
+                    </li>
+                </ul>
+                <i class="glyphicon glyphicon-tower sidebar-bottom-logo"></i>
+            </div>
+            <div class="main">
+                <div class="main-header">
+                    <div class="header-box">
+                        <div class="header-title">
+                            <i class="glyphicon glyphicon-tag"></i>
+                            <span class="title ml-10">标签管理</span>
+                        </div>
+                        <div class="header-operator">
+                            <i class="glyphicon glyphicon-plus"
+                               data-toggle="modal"
+                               data-target="#panelAdd"
+                               title="创建新的标签">
+                            </i>
+                            <i class="glyphicon glyphicon-refresh ml-10"
+                               @click="request"
+                               style="font-size: 22px;"
+                               data-toggle="tooltip"
+                               data-placement="bottom"
+                               title="刷新提交结果"></i>
+                        </div>
+                    </div>
+                    <div class="delimiter"></div>
+                </div>
+                <div class="main-body">
+                    <form class="form form-inline">
+                        <div class="form-group">
+                            <label class="control-label" for="labelName">标签名称：</label>
+                            <input type="text" v-model="query.name" class="form-control" placeholder="无"
+                                   id="labelName"/>
+                        </div>
+                        <div class="form-group ml-10">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-default dropdown-toggle"
+                                        data-toggle="dropdown">
+                                    <span v-if="query.dateType == 0">日期类型</span>
+                                    <span v-else-if="query.dateType == 1">创建日期</span>
+                                    <span v-else>修改日期</span>
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#" @click="query.dateType=0">日期类型</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#" @click="query.dateType=1">创建日期</a></li>
+                                    <li><a href="#" @click="query.dateType=2">修改日期</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="form-group ml-10" v-if="query.dateType != 0">
+                            <label class="control-label" for="startDate">起始日期：</label>
+                            <input type="date" v-model="query.dateStart" class="form-control" id="startDate"/>
+                            <label class="control-label ml-10" for="endDate">结束日期：</label>
+                            <input type="date" v-model="query.dateEnd" class="form-control" id="endDate"/>
+                        </div>
+                        <div class="form-group ml-10 pos-right">
+                            <div @click="request" class="btn btn-default">提交</div>
+                        </div>
+                    </form>
+                    <table class="table table-bordered mt-20" @click="tableHandle">
+                        <tr>
+                            <th>标签名称</th>
+                            <th>创建日期</th>
+                            <th>修改日期</th>
+                            <th>标签描述</th>
+                            <th>相关操作</th>
+                        </tr>
+                        <tr v-for="(item, index) in dataList.labelList">
+                            <td v-text="item.name"></td>
+                            <td v-text="item.dateCreate"></td>
+                            <td v-text="item.dateModify"></td>
+                            <td v-text="item.brief"></td>
+                            <td class="table-operator">
+                                <i class="glyphicon glyphicon-pencil"
+                                   data-toggle="tooltip"
+                                   data-placement="bottom"
+                                   :data-index="index"
+                                   title="修改标签"></i>
+                                <i class="glyphicon glyphicon-trash ml-5"
+                                   data-toggle="tooltip"
+                                   data-placement="bottom"
+                                   :data-index="index"
+                                   title="删除标签"></i>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="main-pager">
+                        <div class="page-form pos-right">
+                            <form class="form form-inline">
+                                <div class="form-group">
+                                    <label class="control-label" for="page">
+                                        当前页码/总页数：
+                                        <span v-text="page.current"></span>/<span v-text="page.total"></span>
+                                    </label>
+                                    <input type="text" class="form-control ml-10" @change="checkPageNumber"
+                                           v-model="page.current" id="page"/>
+                                </div>
+                                <div class="form-group">
+                                    <div class="btn btn-default">跳页</div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗区域 -->
+    <div class="modal fade" id="panelAdd" role="dialog" aria-labelledby="panelAdd">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">添加标签</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form">
+                        <div class="form-group">
+                            <label class="control-label" for="createLabelName">
+                                *标签名称：1-10个中文汉字
+                            </label>
+                            <input type="text" class="form-control" id="createLabelName"/>
+                            <div class=""></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label" for="createLabelBrief">标签介绍：1-64个中文汉字</label>
+                            <textarea class="form-control" id="createLabelBrief" rows="5"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="panelModify" role="dialog" aria-labelledby="panelModify">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">修改标签信息</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form">
+                        <div class="form-group">
+                            <label class="control-label" for="modifyLabelName">
+                                *标签名称：1-10个中文汉字
+                            </label>
+                            <input v-model="panel.modify.name" type="text" class="form-control" id="modifyLabelName"/>
+                            <div class=""></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label" for="modifyLabelBrief">标签介绍：1-64个中文汉字</label>
+                            <textarea v-model="panel.modify.brief" class="form-control" id="modifyLabelBrief" rows="5"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/script/jquery.min.js"></script>
+<script src="/static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+<script src="/static/script/vue.js"></script>
+<script>
+    const PanelManager = {
+        open(coverId, panelId) {
+            $("#" + coverId).removeClass("hidden");
+            $("#" + panelId).removeClass("hidden");
+        },
+        close(coverId, panelId) {
+            $("#" + coverId).addClass("hidden");
+            $("#" + panelId).addClass("hidden");
+        }
+    }
+    new Vue({
+        el: "#app",
+        data: {
+            panelType: 1,
+            query: {
+                name: "",
+                dateType: 0,
+                dateStart: "",
+                dateEnd: ""
+            },
+            page: {
+                count: 1,
+                current: 1,
+                total: 1,
+                limit: 10
+            },
+            dataList: {
+                labelList: [],
+            },
+            panel: {
+                modify: {
+                    id: "",
+                    name: "",
+                    brief: ""
+                }
+            }
+        },
+        created() {
+            this.$nextTick(function () {
+                $(function () {
+                    $('[data-toggle="tooltip"]').tooltip()
+                })
+            });
+            this.request();
+        },
+        methods: {
+            request() {
+                let _this = this;
+
+                $.ajax({
+                    method: "GET",
+                    url: "label/get",
+                    data: {
+                        name: this.query.name,
+                        dateType: this.query.dateType,
+                        dateStart: this.query.dateStart,
+                        dateEnd: this.query.dateEnd,
+                        page: Number(this.page.current),
+                        limit: this.page.limit
+                    },
+                    success(resp) {
+                        resp = JSON.parse(resp);
+                        if (Number(resp.code) === 1) {
+                            console.log(resp.data.labelList);
+                            _this.dataList.labelList = resp.data.labelList;
+                            _this.page.count = resp.data.count;
+                            _this.page.total = Math.ceil(resp.data.count / _this.page.limit);
+                        }
+                    }
+                })
+            },
+            checkPageNumber() {
+                let current = Number(this.page.current);
+
+                if (current <= 0) {
+                    this.page.current = 1;
+                } else if (current > this.page.total) {
+                    this.page.current = this.page.total;
+                }
+            },
+            tableHandle (event) {
+                const target = event.target,
+                    index = target.dataset.index,
+                    data = this.dataList.labelList[index];
+
+                this.panel.modify = {
+                    id: data.id,
+                    name: data.name,
+                    brief: data.brief
+                }
+                $("#panelModify").modal();
+            }
+        }
+    })
+</script>
+</body>
+</html>
