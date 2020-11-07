@@ -44,7 +44,7 @@
                                title="创建新的标签">
                             </i>
                             <i class="glyphicon glyphicon-refresh ml-10"
-                               @click="request"
+                               @click="get_label"
                                style="font-size: 22px;"
                                data-toggle="tooltip"
                                data-placement="bottom"
@@ -84,7 +84,7 @@
                             <input type="date" v-model="query.dateEnd" class="form-control" id="endDate"/>
                         </div>
                         <div class="form-group ml-10 pos-right">
-                            <div @click="request" class="btn btn-default">提交</div>
+                            <div @click="get_label" class="btn btn-default">提交</div>
                         </div>
                     </form>
                     <table class="table table-bordered mt-20" @click="tableHandle">
@@ -135,7 +135,10 @@
             </div>
         </div>
     </div>
-
+    <div class="alert alert-default alert-dismissible fade in" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+        <strong class="mr-15">成功</strong>添加标签成功！
+    </div>
     <!-- 弹窗区域 -->
     <div class="modal fade" id="panelAdd" role="dialog" aria-labelledby="panelAdd">
         <div class="modal-dialog" role="document">
@@ -186,7 +189,8 @@
                         </div>
                         <div class="form-group">
                             <label class="control-label" for="modifyLabelBrief">标签介绍：1-64个中文汉字</label>
-                            <textarea v-model="panel.modify.brief" class="form-control" id="modifyLabelBrief" rows="5"></textarea>
+                            <textarea v-model="panel.modify.brief" class="form-control" id="modifyLabelBrief"
+                                      rows="5"></textarea>
                         </div>
                     </form>
                 </div>
@@ -232,6 +236,10 @@
                 labelList: [],
             },
             panel: {
+                add: {
+                    name: "",
+                    brief: ""
+                },
                 modify: {
                     id: "",
                     name: "",
@@ -242,13 +250,14 @@
         created() {
             this.$nextTick(function () {
                 $(function () {
-                    $('[data-toggle="tooltip"]').tooltip()
+                    $('[data-toggle="tooltip"]').tooltip();
+                    {#$('[data-dismiss="alert"]').alert();#}
                 })
             });
-            this.request();
+            this.get_label();
         },
         methods: {
-            request() {
+            get_label() {
                 let _this = this;
 
                 $.ajax({
@@ -273,6 +282,27 @@
                     }
                 })
             },
+            add_label() {
+                let _this = this;
+
+                $.ajax({
+                    method: "GET",
+                    url: "label/add",
+                    data: {
+                        name: this.panel.add.name,
+                        brief: this.panel.add.brief
+                    },
+                    success(resp) {
+                        resp = JSON.parse(resp);
+                        if (Number(resp.code) === 1) {
+                            console.log(resp.data.labelList);
+                            _this.dataList.labelList = resp.data.labelList;
+                            _this.page.count = resp.data.count;
+                            _this.page.total = Math.ceil(resp.data.count / _this.page.limit);
+                        }
+                    }
+                })
+            },
             checkPageNumber() {
                 let current = Number(this.page.current);
 
@@ -282,7 +312,7 @@
                     this.page.current = this.page.total;
                 }
             },
-            tableHandle (event) {
+            tableHandle(event) {
                 const target = event.target,
                     index = target.dataset.index,
                     data = this.dataList.labelList[index];
